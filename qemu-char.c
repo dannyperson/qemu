@@ -1671,11 +1671,14 @@ static void win_chr_close(CharDriverState *chr)
 static int win_chr_init(CharDriverState *chr, const char *filename)
 {
     WinCharState *s = chr->opaque;
+    char openfilename[255];
     COMMCONFIG comcfg;
     COMMTIMEOUTS cto = { 0, 0, 0, 0, 0};
     COMSTAT comstat;
     DWORD size;
     DWORD err;
+
+    snprintf(openfilename, sizeof(openfilename), "\\\\.\\%s", filename);
 
     s->hsend = CreateEvent(NULL, TRUE, FALSE, NULL);
     if (!s->hsend) {
@@ -1688,7 +1691,7 @@ static int win_chr_init(CharDriverState *chr, const char *filename)
         goto fail;
     }
 
-    s->hcom = CreateFile(filename, GENERIC_READ|GENERIC_WRITE, 0, NULL,
+    s->hcom = CreateFile(openfilename, GENERIC_READ|GENERIC_WRITE, 0, NULL,
                       OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0);
     if (s->hcom == INVALID_HANDLE_VALUE) {
         fprintf(stderr, "Failed CreateFile (%lu)\n", GetLastError());
